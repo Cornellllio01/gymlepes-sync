@@ -1,0 +1,32 @@
+name: Sincronizar Planilha GymLepes
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # a cada hora, todo dia
+  workflow_dispatch: {}    # permite rodar manualmente pelo botão "Run workflow" no GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rodar script de sincronização
+        run: python3 scripts/sync_planilha.py
+
+      - name: Commitar alterações (se houver)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/participantes.json
+          git diff --staged --quiet || git commit -m "Sincroniza dados da planilha GymLepes"
+          git push

@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYM LEPES — Desafio 90 Dias</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #22222d;
+    --border: #2e2e3d;
+    --pi: #4ade80;
+    --pi-bg: #0d2b1a;
+    --di: #f472b6;
+    --di-bg: #2b0d1a;
+    --ge: #60a5fa;
+    --ge-bg: #0d1a2b;
+    --com: #fbbf24;
+    --com-bg: #2b220d;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --gold: #f59e0b;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 32px 24px 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 60% 40%, rgba(96,165,250,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .trophy-row { font-size: 28px; margin-bottom: 8px; }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 8vw, 64px);
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .header .sub {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(14px, 3vw, 20px);
+    letter-spacing: 6px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .dates-bar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .date-chip {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+  .date-chip span { color: var(--text); font-weight: 600; }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    padding: 20px 16px 0;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .progress-track {
+    background: var(--surface2);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--gold), #fcd34d);
+    transition: width 1s ease;
+  }
+  .months-row {
+    display: flex;
+    margin-top: 6px;
+    gap: 3px;
+  }
+  .month-seg {
+    flex: 1;
+    font-size: 9px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    padding: 2px 0;
+    border-radius: 2px;
+  }
+  .month-seg.active { background: rgba(245,158,11,0.15); color: var(--gold); }
+
+  /* RANKING */
+  .section { padding: 24px 16px 0; max-width: 900px; margin: 0 auto; }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .ranking-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .team-card {
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .team-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .team-card.pi { background: var(--pi-bg); border-color: var(--pi); }
+  .team-card.di { background: var(--di-bg); border-color: var(--di); }
+  .team-card.ge { background: var(--ge-bg); border-color: var(--ge); }
+  .team-card.com { background: var(--com-bg); border-color: var(--com); }
+
+  .team-card .pos {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    line-height: 1;
+    opacity: 0.15;
+    position: absolute;
+    top: 8px; right: 12px;
+  }
+  .team-card .team-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+  }
+  .team-card.pi .team-name { color: var(--pi); }
+  .team-card.di .team-name { color: var(--di); }
+  .team-card.ge .team-name { color: var(--ge); }
+  .team-card.com .team-name { color: var(--com); }
+
+  .team-card .score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+  .team-card .members-count {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .bar-mini {
+    margin-top: 12px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  .bar-mini-fill { height: 100%; border-radius: 2px; }
+  .team-card.pi .bar-mini-fill { background: var(--pi); }
+  .team-card.di .bar-mini-fill { background: var(--di); }
+  .team-card.ge .bar-mini-fill { background: var(--ge); }
+  .team-card.com .bar-mini-fill { background: var(--com); }
+
+  /* EQUIPES EXPANDIDAS */
+  .teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .team-block {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .team-block-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .team-block-header .tname {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+  .team-block-header .tbadge {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .pi-color { color: var(--pi); } .pi-badge { background: var(--pi-bg); color: var(--pi); border: 1px solid var(--pi); }
+  .di-color { color: var(--di); } .di-badge { background: var(--di-bg); color: var(--di); border: 1px solid var(--di); }
+  .ge-color { color: var(--ge); } .ge-badge { background: var(--ge-bg); color: var(--ge); border: 1px solid var(--ge); }
+  .com-color { color: var(--com); } .com-badge { background: var(--com-bg); color: var(--com); border: 1px solid var(--com); }
+
+  .members-list { padding: 8px 0; }
+  .member-row {
+    display: flex;
+    align-items: center;
+    padding: 9px 18px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.15s;
+    flex-wrap: wrap;
+  }
+  .member-row:last-child { border-bottom: none; }
+  .member-row:hover { background: rgba(255,255,255,0.03); }
+  .member-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .member-name { flex: 1; font-size: 13px; font-weight: 500; min-width: 90px; }
+  .member-pts {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 28px;
+    text-align: right;
+  }
+  .member-weeks {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    max-width: 130px;
+  }
+  .week-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    background: var(--surface2);
+  }
+  .week-dot.full { background: var(--pi); }
+  .week-dot.di-full { background: var(--di); }
+  .week-dot.ge-full { background: var(--ge); }
+  .week-dot.com-full { background: var(--com); }
+  .week-dot.partial { background: rgba(245,158,11,0.4); }
+  .week-dot.zero { background: rgba(239,68,68,0.3); }
+
+  /* INSERIR TREINO */
+  .insert-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .field select, .field input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .field select:focus, .field input:focus {
+    border-color: var(--gold);
+  }
+  .field select option { background: var(--surface2); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    width: 100%;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* DESAFIOS MENSAIS */
+  .challenges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .challenge-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+  }
+  .challenge-card.active-month {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(245,158,11,0.1);
+  }
+  .active-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: var(--gold);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+  }
+  .challenge-month {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .challenge-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .challenge-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+  .challenge-bonus {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--gold);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* CARDIO TRACKER */
+  .cardio-tracker {
+    background: var(--surface);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: 0 0 30px rgba(245,158,11,0.08);
+  }
+  .cardio-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .cardio-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 3px;
+    color: var(--gold);
+  }
+  .cardio-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+  .cardio-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .cardio-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .cardio-track {
+    background: var(--surface2);
+    border-radius: 6px;
+    height: 10px;
+    overflow: hidden;
+    margin: 16px 0 8px;
+  }
+  .cardio-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #f59e0b, #fcd34d);
+    transition: width 1s ease;
+  }
+  .cardio-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .cardio-stat {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .cardio-stat .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .cardio-stat .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* SESSIONS LOG */
+  .sessions-log { margin-top: 20px; }
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .log-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .log-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .log-dur {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .log-check { font-size: 14px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface2);
+    border: 1px solid var(--gold);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .empty-log {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 20px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+  }
+  .tab {
+    flex: 1;
+    min-width: 80px;
+    padding: 9px 16px;
+    border-radius: 7px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .sync-badge {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: default;
+  }
+  .sync-badge.ok { color: var(--pi); background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); }
+  .sync-badge.loading { color: var(--gold); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+  .sync-badge.err { color: #f87171; background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.25); }
+  .btn-mini {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-mini:hover { color: var(--gold); border-color: var(--gold); }
+
+  @media (max-width: 480px) {
+    .header { padding: 24px 16px 16px; }
+    .cardio-big { font-size: 36px; }
+    .ranking-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="trophy-row">🏆</div>
+  <h1>GYM LEPES</h1>
+  <div class="sub">★ Desafio 90 Dias ★</div>
+  <div class="dates-bar">
+    <div class="date-chip">INÍCIO <span>20/07</span></div>
+    <div class="date-chip">TÉRMINO <span>17/10</span></div>
+    <div class="date-chip">MÊS ATUAL <span id="mes-atual">2 — CARDIO SIM</span></div>
+  </div>
+  <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+    <div id="sync-info" class="sync-badge loading">🔄 sincronizando...</div>
+    <button class="btn-mini" onclick="sincronizarPlanilha(true)">🔄 atualizar da planilha</button>
+    <button class="btn-mini" onclick="limparDados()" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted)'">
+      🗑️ limpar dados
+    </button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>PROGRESSO DO DESAFIO</span>
+    <span id="progress-pct">—</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="months-row">
+    <div class="month-seg" id="seg1">MÊS 1 · 20/07–18/08</div>
+    <div class="month-seg active" id="seg2">MÊS 2 · 19/08–17/09</div>
+    <div class="month-seg" id="seg3">MÊS 3 · 18/09–17/10</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="section" style="padding-top:20px;">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('ranking')">🏆 RANKING</button>
+    <button class="tab" onclick="switchTab('equipes')">👥 EQUIPES</button>
+    <button class="tab" onclick="switchTab('cardio')">🏃 CARDIO</button>
+    <button class="tab" onclick="switchTab('inserir')">➕ INSERIR</button>
+    <button class="tab" onclick="switchTab('desafios')">🎯 DESAFIOS</button>
+  </div>
+
+  <!-- TAB: RANKING -->
+  <div class="tab-content active" id="tab-ranking">
+    <div class="section-title">Classificação das Equipes</div>
+    <div class="ranking-grid" id="ranking-grid"></div>
+  </div>
+
+  <!-- TAB: EQUIPES -->
+  <div class="tab-content" id="tab-equipes">
+    <div class="section-title">Membros por Equipe</div>
+    <div class="teams-grid" id="teams-grid"></div>
+  </div>
+
+  <!-- TAB: CARDIO -->
+  <div class="tab-content" id="tab-cardio">
+    <div class="section-title">Mês 2 — Cardio SIM</div>
+    <div class="cardio-tracker">
+      <div class="cardio-header">
+        <div>
+          <div class="cardio-title">CARDIO SIM 🏃</div>
+          <div class="cardio-meta">19/08 → 17/09 · Meta: 12 horas</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="cardio-big" id="cardio-mins">0</div>
+          <div class="cardio-label">min acumulados</div>
+        </div>
+      </div>
+      <div class="cardio-track">
+        <div class="cardio-fill" id="cardio-fill" style="width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+        <span>0 min</span>
+        <span id="cardio-remaining">— min restantes</span>
+        <span>720 min (12h)</span>
+      </div>
+      <div class="cardio-stats">
+        <div class="cardio-stat">
+          <div class="val" id="stat-sessoes">0</div>
+          <div class="lbl">Sessões</div>
+        </div>
+        <div class="cardio-stat">
+          <div class="val" id="stat-horas">0h00</div>
+          <div class="lbl">Horas feitas</div>
+        </div>
+        <div class="cardio-stat">
+          <div class="val" id="stat-falta">12h00</div>
+          <div class="lbl">Faltam</div>
+        </div>
+      </div>
+
+      <div class="sessions-log">
+        <div class="section-title" style="font-size:14px;margin:16px 0 8px;">Sessões registradas</div>
+        <div id="sessions-list"></div>
+      </div>
+
+      <!-- Adicionar sessão de cardio rápida -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div class="section-title" style="font-size:14px;margin-bottom:12px;">+ Adicionar sessão de cardio</div>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="field">
+            <label>Tipo</label>
+            <select id="cardio-tipo">
+              <option>🏃 Corrida</option>
+              <option>🚶 Caminhada</option>
+              <option>🚴 Bike</option>
+              <option>⚙️ Elíptico</option>
+              <option>🥊 Lutas</option>
+              <option>💃 Dança</option>
+              <option>🏊 Natação</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Duração (min)</label>
+            <input type="number" id="cardio-dur" placeholder="45" min="30">
+          </div>
+        </div>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:0;">
+          <div class="field">
+            <label>Data</label>
+            <input type="date" id="cardio-data">
+          </div>
+          <div class="field">
+            <label>Postou "CARDIO 1"?</label>
+            <select id="cardio-postou">
+              <option value="sim">✅ Sim, postei no grupo</option>
+              <option value="nao">❌ Ainda não</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-top:14px;" onclick="addCardio()">REGISTRAR CARDIO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: INSERIR TREINO -->
+  <div class="tab-content" id="tab-inserir">
+    <div class="section-title">Registrar Treino</div>
+    <div class="insert-box">
+      <div class="form-grid">
+        <div class="field">
+          <label>Participante</label>
+          <select id="inp-nome">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Semana</label>
+          <select id="inp-semana">
+            <option value="1">Semana 1 · 20/07</option>
+            <option value="2">Semana 2 · 27/07</option>
+            <option value="3">Semana 3 · 03/08</option>
+            <option value="4">Semana 4 · 10/08</option>
+            <option value="5" selected>Semana 5 · 17/08</option>
+            <option value="6">Semana 6 · 24/08</option>
+            <option value="7">Semana 7 · 31/08</option>
+            <option value="8">Semana 8 · 07/09</option>
+            <option value="9">Semana 9 · 14/09</option>
+            <option value="10">Semana 10 · 21/09</option>
+            <option value="11">Semana 11 · 28/09</option>
+            <option value="12">Semana 12 · 05/10</option>
+            <option value="13">Semana 13 · 12/10</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Pontos (0–5)</label>
+          <input type="number" id="inp-pts" min="0" max="5" placeholder="5">
+        </div>
+        <div class="field">
+          <label>Tipo de treino</label>
+          <select id="inp-tipo">
+            <option>🏋️ Musculação</option>
+            <option>🏃 Corrida/Cardio</option>
+            <option>🧘 Pilates/Yoga</option>
+            <option>🚴 Bike</option>
+            <option>🥊 Lutas</option>
+            <option>💃 Dança</option>
+            <option>⚽ Esporte</option>
+            <option>🏊 Natação</option>
+            <option>🔥 Cross/Funcional</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:0;">
+        <div class="field">
+          <label>Data do treino</label>
+          <input type="date" id="inp-data">
+        </div>
+        <div class="field">
+          <label>Postou no grupo?</label>
+          <select id="inp-postou">
+            <option value="sim">✅ Sim</option>
+            <option value="nao">❌ Não ainda</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-primary" style="margin-top:16px;" onclick="registrarTreino()">REGISTRAR TREINO</button>
+    </div>
+
+    <!-- LOG RECENTE -->
+    <div class="section-title" style="margin-top:24px;">Treinos Recentes</div>
+    <div id="treinos-log">
+      <div class="empty-log">Nenhum treino registrado ainda</div>
+    </div>
+  </div>
+
+  <!-- TAB: DESAFIOS -->
+  <div class="tab-content" id="tab-desafios">
+    <div class="section-title">Desafios Mensais</div>
+    <div class="challenges-grid">
+      <div class="challenge-card">
+        <div class="challenge-month">MÊS 1 · 20/07 – 18/08</div>
+        <div class="challenge-title" style="color:var(--pi);">🟢 Fim de Semana Ativo</div>
+        <div class="challenge-desc">Fazer 4 treinos no final de semana no mês (Sáb e/ou Dom). Postar foto do check-in no grupo.</div>
+        <div class="challenge-bonus">+20 PONTOS</div>
+      </div>
+      <div class="challenge-card active-month">
+        <div class="active-badge">AGORA ⚡</div>
+        <div class="challenge-month">MÊS 2 · 19/08 – 17/09</div>
+        <div class="challenge-title" style="color:var(--gold);">🔵 Cardio SIM</div>
+        <div class="challenge-desc">Completar 12h de cardio no mês. Legenda "CARDIO 1, 2, 3..." no grupo. Foto com tempo e km/h. Sem relógio = não vale.</div>
+        <div class="challenge-bonus">+25 PONTOS</div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-month">MÊS 3 · 18/09 – 17/10</div>
+        <div class="challenge-title" style="color:var(--di);">🟣 Tríplice</div>
+        <div class="challenge-desc">
+          Cumprir 3 missões:<br>
+          1️⃣ <strong>Inovar</strong> — aula que nunca fez<br>
+          2️⃣ <strong>Social</strong> — treino com amigo<br>
+          3️⃣ <strong>Coletivo</strong> — treino com 3+ do GymLepes<br>
+          Legenda "DESAFIO 3" + 3 fotos.
+        </div>
+        <div class="challenge-bonus">+30 PONTOS</div>
+      </div>
+    </div>
+
+    <!-- PONTUAÇÃO BASE -->
+    <div class="section-title" style="margin-top:24px;">Bônus Constância</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--pi);">META 15</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0;">15 treinos/mês</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--pi);">+30</div>
+        <div style="font-size:10px;color:var(--muted);">pontos</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--ge);border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--ge);">META 20</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0;">20 treinos/mês</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--ge);">+35</div>
+        <div style="font-size:10px;color:var(--muted);">pontos</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--gold);border-radius:10px;padding:16px;text-align:center;box-shadow:0 0 16px rgba(245,158,11,0.1);">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);">META 25 🏆</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0;">25 treinos/mês</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--gold);">+40</div>
+        <div style="font-size:10px;color:var(--muted);">pontos</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── PLANILHA GOOGLE SHEETS (CSV publicado) ─────────────────────
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS58Ccnucbsw_e6Dhat1HRfmHC7tasbmclcJi8l5PvIfkTzfSkoiG-FLOXc0khBxa2a8Nmi0Vn9JlmF/pub?gid=733944384&single=true&output=csv';
+
+const TEAM_META = {
+  'P.I.':     { id: 'pi',  color: '#4ade80', bg: '#0d2b1a' },
+  'D.I.':     { id: 'di',  color: '#f472b6', bg: '#2b0d1a' },
+  'G.E.':     { id: 'ge',  color: '#60a5fa', bg: '#0d1a2b' },
+  'Comunica': { id: 'com', color: '#fbbf24', bg: '#2b220d' },
+};
+function teamMetaFor(nome) {
+  const key = Object.keys(TEAM_META).find(k => k.toLowerCase() === (nome||'').trim().toLowerCase());
+  return key ? TEAM_META[key] : { id: 'com', color: '#999', bg: '#222' };
+}
+
+// DADOS DE FALLBACK (usados se a planilha não carregar)
+const equipesFallback = [
+  {
+    id: 'pi', name: 'P.I.', score: 71.8, color: '#4ade80', bg: '#0d2b1a',
+    members: [
+      { name: 'Júlia',      weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Diogo',      weeks: [5,5,5,3], pontos: 80 },
+      { name: 'Alice',      weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Walacy',     weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Giovana',    weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Cami',       weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Daniel',     weeks: [5,5,4,5], pontos: 74 },
+      { name: 'Livia Piola',weeks: [5,5,5,5], pontos: 75 },
+      { name: 'Val',        weeks: [4,2,5,5], pontos: 71 },
+      { name: 'Enzo',       weeks: [3,4,5,3], pontos: 63 },
+      { name: 'Maltha',     weeks: [4,5,5,4], pontos: 73 },
+    ]
+  },
+  {
+    id: 'di', name: 'D.I.', score: 61.6, color: '#f472b6', bg: '#2b0d1a',
+    members: [
+      { name: 'May',      weeks: [5,5,3,5], pontos: 38 },
+      { name: 'Luccas',  weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Alice',   weeks: [5,5,5,3], pontos: 80 },
+      { name: 'Aline',   weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Pedrinho',weeks: [2,1,4,5], pontos: 30 },
+    ]
+  },
+  {
+    id: 'ge', name: 'G.E.', score: 44.6, color: '#60a5fa', bg: '#0d1a2b',
+    members: [
+      { name: 'Roberta',   weeks: [5,5,4,5], pontos: 49 },
+      { name: 'Rafaela',   weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Herculano', weeks: [5,5,5,1], pontos: 75 },
+      { name: 'Luiz',      weeks: [2,3,0,1], pontos: 6 },
+      { name: 'MB',        weeks: [1,4,4,4], pontos: 13 },
+    ]
+  },
+  {
+    id: 'com', name: 'Comunica', score: 42.5, color: '#fbbf24', bg: '#2b220d',
+    members: [
+      { name: 'Amanda',   weeks: [5,5,5,5], pontos: 80 },
+      { name: 'Paula',    weeks: [2,5,5,5], pontos: 80 },
+      { name: 'Carlos',   weeks: [2,0,5,5], pontos: 12 },
+      { name: 'Fernando', weeks: [5,3,0,1], pontos: 9 },
+      { name: 'Lívia',    weeks: [0,1,0,0], pontos: 1 },
+      { name: 'Bianca',   weeks: [0,0,0,0], pontos: 73 },
+    ]
+  }
+];
+
+let equipes = equipesFallback;
+
+// ─── parser CSV simples (lida com aspas/valores com vírgula) ───
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i+1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function numFrom(v) {
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim().replace(',', '.');
+  if (s === '') return null;
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+// Colunas (0-index): 0=vazia, 1=Nome, 2=Equipe, 3..15=13 semanas, ... 25=PONTOS
+function parseSheetRows(rows) {
+  const teamsMap = {};
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    const nome = (r[1] || '').trim();
+    const equipeName = (r[2] || '').trim();
+    if (!nome || !equipeName) continue;
+    const weeks = [];
+    for (let w = 3; w <= 15; w++) weeks.push(numFrom(r[w]));
+    const pontos = numFrom(r[25]) || 0;
+    const meta = teamMetaFor(equipeName);
+    if (!teamsMap[meta.id]) {
+      teamsMap[meta.id] = { id: meta.id, name: equipeName, color: meta.color, bg: meta.bg, members: [], pontosSum: 0, count: 0 };
+    }
+    teamsMap[meta.id].members.push({ name: nome, weeks, pontos });
+    teamsMap[meta.id].pontosSum += pontos;
+    teamsMap[meta.id].count++;
+  }
+  const teams = Object.values(teamsMap).map(t => ({
+    id: t.id, name: t.name, color: t.color, bg: t.bg,
+    score: t.count ? Math.round((t.pontosSum / t.count) * 10) / 10 : 0,
+    members: t.members,
+  }));
+  return teams;
+}
+
+function setSyncBadge(state, msg) {
+  const el = document.getElementById('sync-info');
+  if (!el) return;
+  el.className = 'sync-badge ' + state;
+  el.textContent = msg;
+}
+
+async function sincronizarPlanilha(manual) {
+  setSyncBadge('loading', '🔄 sincronizando...');
+  try {
+    const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    const parsed = parseSheetRows(rows);
+    if (!parsed.length) throw new Error('planilha vazia');
+    equipes = parsed;
+    const agora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    setSyncBadge('ok', '✅ sincronizado às ' + agora);
+    renderRanking();
+    renderTeams();
+    refreshParticipantSelect();
+  } catch (e) {
+    console.warn('Falha ao sincronizar planilha:', e);
+    if (equipes === equipesFallback || manual) {
+      setSyncBadge('err', '⚠️ sem conexão · usando dados salvos');
+    }
+    if (equipes !== equipesFallback) return; // já tem dados carregados antes
+    equipes = equipesFallback;
+    renderRanking();
+    renderTeams();
+    refreshParticipantSelect();
+  }
+}
+
+// ─── localStorage helpers ───────────────────────────────────────
+const DB = {
+  KEY_CARDIO:  'gymlepes_cardio',
+  KEY_TREINOS: 'gymlepes_treinos',
+
+  load(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch(e) { return fallback; }
+  },
+
+  save(key, data) {
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) { console.warn('Storage cheio', e); }
+  },
+
+  clear() {
+    localStorage.removeItem(DB.KEY_CARDIO);
+    localStorage.removeItem(DB.KEY_TREINOS);
+  }
+};
+
+// ─── STATE (carregado do localStorage) ──────────────────────────
+let cardioSessions = DB.load(DB.KEY_CARDIO, []);
+let treinos = DB.load(DB.KEY_TREINOS, []);
+
+// PROGRESS
+function calcProgress() {
+  const start = new Date('2026-07-20');
+  const end   = new Date('2026-10-17');
+  const now   = new Date();
+  const total = end - start;
+  const done  = Math.min(Math.max(now - start, 0), total);
+  return Math.round((done / total) * 100);
+}
+
+function initProgress() {
+  const pct = calcProgress();
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '% CONCLUÍDO';
+}
+
+// RANKING
+function renderRanking() {
+  const grid = document.getElementById('ranking-grid');
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
+  const sorted = [...equipes].sort((a,b) => b.score - a.score);
+  const maxScore = Math.max(...equipes.map(e => e.score), 1);
+  grid.innerHTML = sorted.map((eq, i) => `
+    <div class="team-card ${eq.id}" onclick="switchTab('equipes')">
+      <div class="pos">${i+1}</div>
+      <div style="font-size:18px;">${medals[i] || (i+1)+'️⃣'}</div>
+      <div class="team-name">${eq.name}</div>
+      <div class="score" style="color:${eq.color}">${eq.score}</div>
+      <div class="members-count">${eq.members.length} membros</div>
+      <div class="bar-mini">
+        <div class="bar-mini-fill" style="width:${(eq.score/maxScore*100).toFixed(1)}%;background:${eq.color}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// TEAMS
+function weekDotClass(pts, teamId) {
+  if (pts === null || pts === undefined) return 'week-dot';
+  if (pts >= 5) return `week-dot ${teamId}-full`;
+  if (pts > 0)  return 'week-dot partial';
+  return 'week-dot zero';
+}
+
+function renderTeams() {
+  const grid = document.getElementById('teams-grid');
+  grid.innerHTML = equipes.map(eq => {
+    const sorted = [...eq.members].sort((a,b) => b.pontos - a.pontos);
+    return `
+    <div class="team-block">
+      <div class="team-block-header">
+        <div class="tname" style="color:${eq.color}">${eq.name}</div>
+        <div class="tbadge" style="background:${eq.bg};color:${eq.color};border:1px solid ${eq.color};">${eq.score} pts</div>
+      </div>
+      <div class="members-list">
+        ${sorted.map((m, idx) => {
+          const isCarlos = m.name === 'Carlos';
+          return `
+          <div class="member-row" style="${isCarlos ? 'background:rgba(251,191,36,0.06);' : ''}">
+            <div class="member-avatar" style="background:${eq.color}22;color:${eq.color};">
+              ${idx === 0 ? '🥇' : m.name.charAt(0)}
+            </div>
+            <div class="member-name">${m.name}${isCarlos ? ' <span style="font-size:10px;color:var(--gold);">← você</span>' : ''}</div>
+            <div class="member-weeks">
+              ${m.weeks.map(pts => `<div class="${weekDotClass(pts, eq.id)}" title="${pts === null ? '—' : pts + ' pts'}"></div>`).join('')}
+            </div>
+            <div class="member-pts" style="color:${eq.color}">${m.pontos}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// POPULATE SELECT
+function refreshParticipantSelect() {
+  const sel = document.getElementById('inp-nome');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Selecione...</option>';
+  equipes.forEach(eq => {
+    eq.members.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.name + '|' + eq.id;
+      opt.textContent = `${m.name} (${eq.name})`;
+      sel.appendChild(opt);
+    });
+  });
+  const restore = [...sel.options].find(o => o.value === current);
+  if (restore) sel.value = current;
+  else {
+    const carlos = [...sel.options].find(o => o.value.startsWith('Carlos|'));
+    if (carlos) sel.value = carlos.value;
+  }
+}
+
+// SET TODAY
+function setToday() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('inp-data').value = today;
+  document.getElementById('cardio-data').value = today;
+}
+
+// CARDIO
+function updateCardioUI() {
+  const total = cardioSessions.reduce((a,b) => a + b.dur, 0);
+  const pct   = Math.min((total / 720) * 100, 100);
+  const falta = Math.max(720 - total, 0);
+  const horas = Math.floor(total/60);
+  const mins  = total % 60;
+  const fH    = Math.floor(falta/60);
+  const fM    = falta % 60;
+
+  document.getElementById('cardio-mins').textContent  = total;
+  document.getElementById('cardio-fill').style.width  = pct.toFixed(1) + '%';
+  document.getElementById('cardio-remaining').textContent = falta + ' min restantes';
+  document.getElementById('stat-sessoes').textContent = cardioSessions.length;
+  document.getElementById('stat-horas').textContent   = `${horas}h${String(mins).padStart(2,'0')}`;
+  document.getElementById('stat-falta').textContent   = `${fH}h${String(fM).padStart(2,'0')}`;
+
+  const list = document.getElementById('sessions-list');
+  if (cardioSessions.length === 0) {
+    list.innerHTML = '<div class="empty-log">Nenhuma sessão registrada</div>';
+  } else {
+    list.innerHTML = cardioSessions.map(s => `
+      <div class="log-item">
+        <div class="log-icon">${s.tipo.split(' ')[0]}</div>
+        <div style="flex:1;">
+          <div class="log-name">${s.nome || s.tipo}</div>
+          <div class="log-meta">${s.data} · ${s.postou ? '✅ Postou no grupo' : '⚠️ Não postou ainda'}</div>
+        </div>
+        <div class="log-dur">${s.dur} min</div>
+      </div>
+    `).join('');
+  }
+}
+
+function addCardio() {
+  const tipo   = document.getElementById('cardio-tipo').value;
+  const dur    = parseInt(document.getElementById('cardio-dur').value);
+  const data   = document.getElementById('cardio-data').value;
+  const postou = document.getElementById('cardio-postou').value === 'sim';
+
+  if (!dur || dur < 30) { showToast('⚠️ Mínimo 30 minutos!'); return; }
+  if (!data) { showToast('⚠️ Selecione a data!'); return; }
+
+  const d = new Date(data + 'T12:00:00');
+  const fmt = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+
+  cardioSessions.push({ tipo, dur, data: fmt, postou, nome: tipo });
+  DB.save(DB.KEY_CARDIO, cardioSessions);
+  updateCardioUI();
+
+  document.getElementById('cardio-dur').value = '';
+  if (!postou) {
+    showToast('⚠️ Lembra de postar "CARDIO ' + cardioSessions.length + '" no grupo!');
+  } else {
+    showToast('✅ Sessão salva! +' + dur + ' min 💾');
+  }
+}
+
+// REGISTRAR TREINO
+function registrarTreino() {
+  const nome   = document.getElementById('inp-nome').value;
+  const semana = document.getElementById('inp-semana').value;
+  const pts    = parseInt(document.getElementById('inp-pts').value);
+  const tipo   = document.getElementById('inp-tipo').value;
+  const data   = document.getElementById('inp-data').value;
+  const postou = document.getElementById('inp-postou').value === 'sim';
+
+  if (!nome)            { showToast('⚠️ Selecione o participante!'); return; }
+  if (!pts || pts < 0 || pts > 5) { showToast('⚠️ Pontos entre 0 e 5!'); return; }
+  if (!data)            { showToast('⚠️ Selecione a data!'); return; }
+
+  const [nomeP, equipeId] = nome.split('|');
+  const d = new Date(data + 'T12:00:00');
+  const fmt = d.toLocaleDateString('pt-BR');
+
+  treinos.unshift({ nomeP, equipeId, semana, pts, tipo, data: fmt, postou });
+  DB.save(DB.KEY_TREINOS, treinos);
+  renderTreinosLog();
+
+  if (!postou) showToast(`⚠️ Salvo! Mas não esqueça de postar no grupo! 💾`);
+  else showToast(`✅ Salvo! ${nomeP} · S${semana} · ${pts} pts 💾`);
+}
+
+function renderTreinosLog() {
+  const log = document.getElementById('treinos-log');
+  if (treinos.length === 0) {
+    log.innerHTML = '<div class="empty-log">Nenhum treino registrado ainda</div>';
+    return;
+  }
+  log.innerHTML = treinos.map(t => {
+    const eq = equipes.find(e => e.id === t.equipeId);
+    return `
+    <div class="log-item">
+      <div class="log-icon">${t.tipo.split(' ')[0]}</div>
+      <div style="flex:1;">
+        <div class="log-name">${t.nomeP} <span style="font-size:10px;color:${eq?.color || '#fff'};background:${eq?.bg || '#222'};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq?.name || ''}</span></div>
+        <div class="log-meta">Sem ${t.semana} · ${t.data} · ${t.postou ? '✅ Postado' : '⚠️ Não postou'}</div>
+      </div>
+      <div class="log-dur" style="color:${eq?.color}">${t.pts} pts</div>
+    </div>`;
+  }).join('');
+}
+
+// LIMPAR DADOS
+function limparDados() {
+  if (!confirm('⚠️ Apagar todos os treinos e sessões de cardio salvos NESTE navegador?\n\n(Os dados da planilha não são afetados.)\n\nEssa ação não pode ser desfeita!')) return;
+  DB.clear();
+  cardioSessions = [];
+  treinos = [];
+  updateCardioUI();
+  renderTreinosLog();
+  showToast('🗑️ Dados locais apagados!');
+}
+
+// TABS
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  const tabs = ['ranking','equipes','cardio','inserir','desafios'];
+  const idx  = tabs.indexOf(id);
+  document.querySelectorAll('.tab')[idx]?.classList.add('active');
+}
+
+// TOAST
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// INIT
+initProgress();
+renderRanking();
+renderTeams();
+refreshParticipantSelect();
+setToday();
+updateCardioUI();
+renderTreinosLog();
+sincronizarPlanilha(false);
+</script>
+</body>
+</html>

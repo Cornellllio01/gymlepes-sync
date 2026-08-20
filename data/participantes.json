@@ -1,0 +1,30 @@
+{
+  "updated_at": "2026-08-20T00:00:00+00:00",
+  "teams": [
+    {
+      "id": "pi", "name": "P.I.", "color": "#4ade80", "bg": "#0d2b1a", "score": 71.8,
+      "members": [
+        {"name": "Júlia", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80},
+        {"name": "Diogo", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+      ]
+    },
+    {
+      "id": "di", "name": "D.I.", "color": "#f472b6", "bg": "#2b0d1a", "score": 61.6,
+      "members": [
+        {"name": "Luccas", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+      ]
+    },
+    {
+      "id": "ge", "name": "G.E.", "color": "#60a5fa", "bg": "#0d1a2b", "score": 44.6,
+      "members": [
+        {"name": "Rafaela", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+      ]
+    },
+    {
+      "id": "com", "name": "Comunica", "color": "#fbbf24", "bg": "#2b220d", "score": 42.5,
+      "members": [
+        {"name": "Amanda", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+      ]
+    }
+  ]
+}

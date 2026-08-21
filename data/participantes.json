@@ -1,29 +1,553 @@
 {
-  "updated_at": "2026-08-20T00:00:00+00:00",
+  "updated_at": "2026-08-21T01:03:30.259021+00:00",
   "teams": [
     {
-      "id": "pi", "name": "P.I.", "color": "#4ade80", "bg": "#0d2b1a", "score": 71.8,
+      "id": "pi",
+      "name": "P.I.",
+      "color": "#4ade80",
+      "bg": "#0d2b1a",
+      "score": 71.8,
       "members": [
-        {"name": "Júlia", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80},
-        {"name": "Diogo", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+        {
+          "name": "Júlia",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Diogo",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Nami",
+          "weeks": [
+            5.0,
+            3.0,
+            3.0,
+            3.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 34.0
+        },
+        {
+          "name": "Walacy",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Giovana",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Cami",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Daniel",
+          "weeks": [
+            5.0,
+            5.0,
+            4.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 74.0
+        },
+        {
+          "name": "Lívia Piola",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 75.0
+        },
+        {
+          "name": "Enzo",
+          "weeks": [
+            3.0,
+            4.0,
+            3.0,
+            3.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 63.0
+        },
+        {
+          "name": "Maítha",
+          "weeks": [
+            4.0,
+            5.0,
+            5.0,
+            4.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 73.0
+        },
+        {
+          "name": "Val",
+          "weeks": [
+            4.0,
+            2.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 71.0
+        }
       ]
     },
     {
-      "id": "di", "name": "D.I.", "color": "#f472b6", "bg": "#2b0d1a", "score": 61.6,
+      "id": "di",
+      "name": "D.I.",
+      "color": "#f472b6",
+      "bg": "#2b0d1a",
+      "score": 61.6,
       "members": [
-        {"name": "Luccas", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+        {
+          "name": "May",
+          "weeks": [
+            5.0,
+            5.0,
+            3.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 38.0
+        },
+        {
+          "name": "Luccas",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Alice",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Aline",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Pedrinho",
+          "weeks": [
+            2.0,
+            1.0,
+            4.0,
+            3.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 30.0
+        }
       ]
     },
     {
-      "id": "ge", "name": "G.E.", "color": "#60a5fa", "bg": "#0d1a2b", "score": 44.6,
+      "id": "ge",
+      "name": "G.E.",
+      "color": "#60a5fa",
+      "bg": "#0d1a2b",
+      "score": 44.6,
       "members": [
-        {"name": "Rafaela", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+        {
+          "name": "Roberta",
+          "weeks": [
+            5.0,
+            5.0,
+            4.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 49.0
+        },
+        {
+          "name": "Rafaela",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Herculano",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 75.0
+        },
+        {
+          "name": "Luiz",
+          "weeks": [
+            2.0,
+            3.0,
+            0.0,
+            1.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 6.0
+        },
+        {
+          "name": "MB",
+          "weeks": [
+            1.0,
+            4.0,
+            4.0,
+            4.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 13.0
+        }
       ]
     },
     {
-      "id": "com", "name": "Comunica", "color": "#fbbf24", "bg": "#2b220d", "score": 42.5,
+      "id": "com",
+      "name": "Comunica",
+      "color": "#fbbf24",
+      "bg": "#2b220d",
+      "score": 42.5,
       "members": [
-        {"name": "Amanda", "weeks": [5,5,5,5,null,null,null,null,null,null,null,null,null], "pontos": 80}
+        {
+          "name": "Bianca",
+          "weeks": [
+            4.0,
+            5.0,
+            5.0,
+            4.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 73.0
+        },
+        {
+          "name": "Lívia",
+          "weeks": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 1.0
+        },
+        {
+          "name": "Carlos",
+          "weeks": [
+            2.0,
+            0.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 12.0
+        },
+        {
+          "name": "Paula",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        },
+        {
+          "name": "Fernando",
+          "weeks": [
+            5.0,
+            3.0,
+            0.0,
+            1.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 9.0
+        },
+        {
+          "name": "Amanda",
+          "weeks": [
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "pontos": 80.0
+        }
       ]
     }
   ]

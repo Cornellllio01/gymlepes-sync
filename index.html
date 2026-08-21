@@ -1172,7 +1172,7 @@ function updateCardioUI() {
   if (cardioSessions.length === 0) {
     list.innerHTML = '<div class="empty-log">Nenhuma sessão registrada</div>';
   } else {
-    list.innerHTML = cardioSessions.map(s => `
+    list.innerHTML = cardioSessions.map((s, idx) => `
       <div class="log-item">
         <div class="log-icon">${s.tipo.split(' ')[0]}</div>
         <div style="flex:1;">
@@ -1180,9 +1180,17 @@ function updateCardioUI() {
           <div class="log-meta">${s.data} · ${s.postou ? '✅ Postou no grupo' : '⚠️ Não postou ainda'}</div>
         </div>
         <div class="log-dur">${s.dur} min</div>
+        <button class="btn-mini" onclick="removerCardio(${idx})" title="Excluir esta sessão" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
       </div>
     `).join('');
   }
+}
+
+function removerCardio(idx) {
+  cardioSessions.splice(idx, 1);
+  DB.save(DB.KEY_CARDIO, cardioSessions);
+  updateCardioUI();
+  showToast('🗑️ Sessão de cardio removida');
 }
 
 function addCardio() {
@@ -1194,8 +1202,8 @@ function addCardio() {
   if (!dur || dur < 30) { showToast('⚠️ Mínimo 30 minutos!'); return; }
   if (!data) { showToast('⚠️ Selecione a data!'); return; }
 
-  const d = new Date(data + 'T12:00:00');
-  const fmt = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  const [ano, mes, dia] = data.split('-');
+  const fmt = `${dia}/${mes}`;
 
   cardioSessions.push({ tipo, dur, data: fmt, postou, nome: tipo });
   DB.save(DB.KEY_CARDIO, cardioSessions);
@@ -1234,13 +1242,20 @@ function registrarTreino() {
   else showToast(`✅ Salvo! ${nomeP} · S${semana} · ${pts} pts 💾`);
 }
 
+function removerTreino(idx) {
+  treinos.splice(idx, 1);
+  DB.save(DB.KEY_TREINOS, treinos);
+  renderTreinosLog();
+  showToast('🗑️ Treino removido');
+}
+
 function renderTreinosLog() {
   const log = document.getElementById('treinos-log');
   if (treinos.length === 0) {
     log.innerHTML = '<div class="empty-log">Nenhum treino registrado ainda</div>';
     return;
   }
-  log.innerHTML = treinos.map(t => {
+  log.innerHTML = treinos.map((t, idx) => {
     const eq = equipes.find(e => e.id === t.equipeId);
     return `
     <div class="log-item">
@@ -1250,6 +1265,7 @@ function renderTreinosLog() {
         <div class="log-meta">Sem ${t.semana} · ${t.data} · ${t.postou ? '✅ Postado' : '⚠️ Não postou'}</div>
       </div>
       <div class="log-dur" style="color:${eq?.color}">${t.pts} pts</div>
+      <button class="btn-mini" onclick="removerTreino(${idx})" title="Excluir este treino" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
     </div>`;
   }).join('');
 }

@@ -288,6 +288,7 @@
     background: var(--surface2);
   }
   .week-dot.full { background: var(--pi); }
+  .week-dot.pi-full { background: var(--pi); }
   .week-dot.di-full { background: var(--di); }
   .week-dot.ge-full { background: var(--ge); }
   .week-dot.com-full { background: var(--com); }
@@ -608,9 +609,6 @@
   <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
     <div id="sync-info" class="sync-badge loading">🔄 sincronizando...</div>
     <button class="btn-mini" onclick="sincronizarPlanilha(true)">🔄 atualizar da planilha</button>
-    <button class="btn-mini" onclick="limparDados()" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted)'">
-      🗑️ limpar dados
-    </button>
   </div>
 </div>
 
@@ -896,21 +894,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── PLANILHA GOOGLE SHEETS (CSV publicado) ─────────────────────
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS58Ccnucbsw_e6Dhat1HRfmHC7tasbmclcJi8l5PvIfkTzfSkoiG-FLOXc0khBxa2a8Nmi0Vn9JlmF/pub?gid=733944384&single=true&output=csv';
+// ─── DADOS SINCRONIZADOS (GitHub Actions → JSON) ────────────────
+// Um workflow no repo Cornellllio01/gymlepes-sync busca a planilha a cada hora
+// e publica este JSON, servido via raw.githubusercontent.com (CORS liberado nativamente).
+// IMPORTANTE: NÃO trocar por fetch direto do CSV do Google Sheets — o endpoint de
+// publicação do Sheets não envia headers CORS e o fetch falha ("Failed to fetch").
+const DATA_JSON_URL = 'https://raw.githubusercontent.com/Cornellllio01/gymlepes-sync/main/data/participantes.json';
 
-const TEAM_META = {
-  'P.I.':     { id: 'pi',  color: '#4ade80', bg: '#0d2b1a' },
-  'D.I.':     { id: 'di',  color: '#f472b6', bg: '#2b0d1a' },
-  'G.E.':     { id: 'ge',  color: '#60a5fa', bg: '#0d1a2b' },
-  'Comunica': { id: 'com', color: '#fbbf24', bg: '#2b220d' },
-};
-function teamMetaFor(nome) {
-  const key = Object.keys(TEAM_META).find(k => k.toLowerCase() === (nome||'').trim().toLowerCase());
-  return key ? TEAM_META[key] : { id: 'com', color: '#999', bg: '#222' };
-}
-
-// DADOS DE FALLBACK (usados se a planilha não carregar)
+// DADOS DE FALLBACK (usados se o JSON não carregar)
 const equipesFallback = [
   {
     id: 'pi', name: 'P.I.', score: 71.8, color: '#4ade80', bg: '#0d2b1a',
@@ -963,64 +954,6 @@ const equipesFallback = [
 
 let equipes = equipesFallback;
 
-// ─── parser CSV simples (lida com aspas/valores com vírgula) ───
-function parseCSV(text) {
-  const rows = [];
-  let row = [], field = '', inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i+1] === '"') { field += '"'; i++; }
-        else inQuotes = false;
-      } else field += c;
-    } else {
-      if (c === '"') inQuotes = true;
-      else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
-      else if (c === '\r') { /* skip */ }
-      else field += c;
-    }
-  }
-  if (field.length || row.length) { row.push(field); rows.push(row); }
-  return rows;
-}
-
-function numFrom(v) {
-  if (v === undefined || v === null) return null;
-  const s = String(v).trim().replace(',', '.');
-  if (s === '') return null;
-  const n = parseFloat(s);
-  return isNaN(n) ? null : n;
-}
-
-// Colunas (0-index): 0=vazia, 1=Nome, 2=Equipe, 3..15=13 semanas, ... 25=PONTOS
-function parseSheetRows(rows) {
-  const teamsMap = {};
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i];
-    const nome = (r[1] || '').trim();
-    const equipeName = (r[2] || '').trim();
-    if (!nome || !equipeName) continue;
-    const weeks = [];
-    for (let w = 3; w <= 15; w++) weeks.push(numFrom(r[w]));
-    const pontos = numFrom(r[25]) || 0;
-    const meta = teamMetaFor(equipeName);
-    if (!teamsMap[meta.id]) {
-      teamsMap[meta.id] = { id: meta.id, name: equipeName, color: meta.color, bg: meta.bg, members: [], pontosSum: 0, count: 0 };
-    }
-    teamsMap[meta.id].members.push({ name: nome, weeks, pontos });
-    teamsMap[meta.id].pontosSum += pontos;
-    teamsMap[meta.id].count++;
-  }
-  const teams = Object.values(teamsMap).map(t => ({
-    id: t.id, name: t.name, color: t.color, bg: t.bg,
-    score: t.count ? Math.round((t.pontosSum / t.count) * 10) / 10 : 0,
-    members: t.members,
-  }));
-  return teams;
-}
-
 function setSyncBadge(state, msg) {
   const el = document.getElementById('sync-info');
   if (!el) return;
@@ -1031,20 +964,21 @@ function setSyncBadge(state, msg) {
 async function sincronizarPlanilha(manual) {
   setSyncBadge('loading', '🔄 sincronizando...');
   try {
-    const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
+    const bustedUrl = DATA_JSON_URL + '?_ts=' + Date.now();
+    const res = await fetch(bustedUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    const rows = parseCSV(text);
-    const parsed = parseSheetRows(rows);
-    if (!parsed.length) throw new Error('planilha vazia');
-    equipes = parsed;
-    const agora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    setSyncBadge('ok', '✅ sincronizado às ' + agora);
+    const data = await res.json();
+    if (!data.teams || !data.teams.length) throw new Error('json vazio');
+    equipes = data.teams;
+    const atualizadoEm = data.updated_at ? new Date(data.updated_at) : new Date();
+    const agora = atualizadoEm.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    setSyncBadge('ok', '✅ planilha sincronizada em ' + agora);
     renderRanking();
     renderTeams();
     refreshParticipantSelect();
+    renderMetasList();
   } catch (e) {
-    console.warn('Falha ao sincronizar planilha:', e);
+    console.warn('Falha ao sincronizar dados:', e);
     if (equipes === equipesFallback || manual) {
       setSyncBadge('err', '⚠️ sem conexão · usando dados salvos');
     }
@@ -1456,11 +1390,6 @@ function renderTreinosLog() {
       <button class="btn-mini" onclick="removerTreino(${t.id})" title="Excluir este treino" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
     </div>`;
   }).join('');
-}
-
-// LIMPAR DADOS (legado — os dados agora ficam no servidor, não no navegador)
-function limparDados() {
-  showToast('ℹ️ Os treinos e o cardio agora ficam salvos no servidor, não neste navegador. Exclua item por item na lista.');
 }
 
 // TABS

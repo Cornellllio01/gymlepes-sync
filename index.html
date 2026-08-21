@@ -276,6 +276,15 @@
     min-width: 28px;
     text-align: right;
   }
+  .member-cardio {
+    font-size: 10px;
+    color: var(--gold);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    min-width: 56px;
+    text-align: right;
+  }
+  .member-cardio.zero { color: var(--muted); }
   .member-weeks {
     display: flex;
     gap: 3px;
@@ -1039,6 +1048,7 @@ async function carregarCardio() {
     showToast('⚠️ Não foi possível carregar o cardio do servidor');
   }
   updateCardioUI();
+  renderTeams();
 }
 
 // ─── META MENSAL DE CONSTÂNCIA ────────────────────────────────────
@@ -1176,6 +1186,13 @@ function weekDotClass(pts, teamId) {
   return 'week-dot zero';
 }
 
+// Soma os minutos de cardio acumulados por uma pessoa (todas as sessões dela)
+function getCardioMinutosPorNome(nome) {
+  return cardioSessions
+    .filter(s => s.nome === nome)
+    .reduce((total, s) => total + (s.duracao_min || 0), 0);
+}
+
 function renderTeams() {
   const grid = document.getElementById('teams-grid');
   grid.innerHTML = equipes.map(eq => {
@@ -1189,6 +1206,8 @@ function renderTeams() {
       <div class="members-list">
         ${sorted.map((m, idx) => {
           const isCarlos = m.name === 'Carlos';
+          const cardioMin = getCardioMinutosPorNome(m.name);
+          const cardioLabel = cardioMin > 0 ? `🏃 ${cardioMin}min` : '—';
           return `
           <div class="member-row" style="${isCarlos ? 'background:rgba(251,191,36,0.06);' : ''}">
             <div class="member-avatar" style="background:${eq.color}22;color:${eq.color};">
@@ -1198,6 +1217,7 @@ function renderTeams() {
             <div class="member-weeks">
               ${m.weeks.map(pts => `<div class="${weekDotClass(pts, eq.id)}" title="${pts === null ? '—' : pts + ' pts'}"></div>`).join('')}
             </div>
+            <div class="member-cardio ${cardioMin === 0 ? 'zero' : ''}" title="Cardio acumulado neste mês">${cardioLabel}</div>
             <div class="member-pts" style="color:${eq.color}">${m.pontos}</div>
           </div>`;
         }).join('')}

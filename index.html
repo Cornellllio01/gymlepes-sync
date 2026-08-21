@@ -699,6 +699,12 @@
         <div class="section-title" style="font-size:14px;margin-bottom:12px;">+ Adicionar sessão de cardio</div>
         <div class="form-grid" style="grid-template-columns:1fr 1fr;">
           <div class="field">
+            <label>Participante</label>
+            <select id="cardio-nome">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="field">
             <label>Tipo</label>
             <select id="cardio-tipo">
               <option>🏃 Corrida</option>
@@ -1025,29 +1031,56 @@ async function sincronizarPlanilha(manual) {
   }
 }
 
-// ─── localStorage helpers ───────────────────────────────────────
-const DB = {
-  KEY_CARDIO:  'gymlepes_cardio',
-  KEY_TREINOS: 'gymlepes_treinos',
+// ─── API (PythonAnywhere) ────────────────────────────────────────
+const API_BASE = 'https://lepesti01.pythonanywhere.com';
 
-  load(key, fallback) {
-    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
-    catch(e) { return fallback; }
-  },
+async function apiGet(path) {
+  const res = await fetch(API_BASE + path);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
 
-  save(key, data) {
-    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) { console.warn('Storage cheio', e); }
-  },
+async function apiPost(path, body) {
+  const res = await fetch(API_BASE + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
 
-  clear() {
-    localStorage.removeItem(DB.KEY_CARDIO);
-    localStorage.removeItem(DB.KEY_TREINOS);
+async function apiDelete(path) {
+  const res = await fetch(API_BASE + path, { method: 'DELETE' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ─── STATE (carregado da API) ────────────────────────────────────
+let cardioSessions = [];
+let treinos = [];
+
+async function carregarTreinos() {
+  try {
+    treinos = await apiGet('/gymlepes/treinos');
+  } catch (e) {
+    console.warn('Falha ao carregar treinos da API:', e);
+    treinos = [];
+    showToast('⚠️ Não foi possível carregar os treinos do servidor');
   }
-};
+  renderTreinosLog();
+}
 
-// ─── STATE (carregado do localStorage) ──────────────────────────
-let cardioSessions = DB.load(DB.KEY_CARDIO, []);
-let treinos = DB.load(DB.KEY_TREINOS, []);
+async function carregarCardio() {
+  try {
+    cardioSessions = await apiGet('/gymlepes/cardio');
+  } catch (e) {
+    console.warn('Falha ao carregar cardio da API:', e);
+    cardioSessions = [];
+    showToast('⚠️ Não foi possível carregar o cardio do servidor');
+  }
+  updateCardioUI();
+}
 
 // PROGRESS
 function calcProgress() {
@@ -1124,8 +1157,7 @@ function renderTeams() {
 }
 
 // POPULATE SELECT
-function refreshParticipantSelect() {
-  const sel = document.getElementById('inp-nome');
+function populateParticipantSelect(sel) {
   const current = sel.value;
   sel.innerHTML = '<option value="">Selecione...</option>';
   equipes.forEach(eq => {
@@ -1144,6 +1176,11 @@ function refreshParticipantSelect() {
   }
 }
 
+function refreshParticipantSelect() {
+  populateParticipantSelect(document.getElementById('inp-nome'));
+  populateParticipantSelect(document.getElementById('cardio-nome'));
+}
+
 // SET TODAY
 function setToday() {
   const today = new Date().toISOString().split('T')[0];
@@ -1153,7 +1190,7 @@ function setToday() {
 
 // CARDIO
 function updateCardioUI() {
-  const total = cardioSessions.reduce((a,b) => a + b.dur, 0);
+  const total = cardioSessions.reduce((a,b) => a + b.duracao_min, 0);
   const pct   = Math.min((total / 720) * 100, 100);
   const falta = Math.max(720 - total, 0);
   const horas = Math.floor(total/60);
@@ -1172,53 +1209,72 @@ function updateCardioUI() {
   if (cardioSessions.length === 0) {
     list.innerHTML = '<div class="empty-log">Nenhuma sessão registrada</div>';
   } else {
-    list.innerHTML = cardioSessions.map((s, idx) => `
+    list.innerHTML = cardioSessions.map((s) => {
+      const eq = equipes.find(e => e.id === s.equipe_id);
+      return `
       <div class="log-item">
         <div class="log-icon">${s.tipo.split(' ')[0]}</div>
         <div style="flex:1;">
-          <div class="log-name">${s.nome || s.tipo}</div>
+          <div class="log-name">${s.nome || s.tipo}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
           <div class="log-meta">${s.data} · ${s.postou ? '✅ Postou no grupo' : '⚠️ Não postou ainda'}</div>
         </div>
-        <div class="log-dur">${s.dur} min</div>
-        <button class="btn-mini" onclick="removerCardio(${idx})" title="Excluir esta sessão" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
-      </div>
-    `).join('');
+        <div class="log-dur">${s.duracao_min} min</div>
+        <button class="btn-mini" onclick="removerCardio(${s.id})" title="Excluir esta sessão" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
+      </div>`;
+    }).join('');
   }
 }
 
-function removerCardio(idx) {
-  cardioSessions.splice(idx, 1);
-  DB.save(DB.KEY_CARDIO, cardioSessions);
-  updateCardioUI();
-  showToast('🗑️ Sessão de cardio removida');
+async function removerCardio(id) {
+  try {
+    await apiDelete('/gymlepes/cardio/' + id);
+    await carregarCardio();
+    showToast('🗑️ Sessão de cardio removida');
+  } catch (e) {
+    console.warn('Falha ao excluir sessão de cardio:', e);
+    showToast('⚠️ Não foi possível excluir. Tente novamente.');
+  }
 }
 
-function addCardio() {
+async function addCardio() {
+  const nomeSel = document.getElementById('cardio-nome').value;
   const tipo   = document.getElementById('cardio-tipo').value;
   const dur    = parseInt(document.getElementById('cardio-dur').value);
   const data   = document.getElementById('cardio-data').value;
   const postou = document.getElementById('cardio-postou').value === 'sim';
 
+  if (!nomeSel) { showToast('⚠️ Selecione o participante!'); return; }
   if (!dur || dur < 30) { showToast('⚠️ Mínimo 30 minutos!'); return; }
   if (!data) { showToast('⚠️ Selecione a data!'); return; }
 
+  const [nomeP, equipeId] = nomeSel.split('|');
   const [ano, mes, dia] = data.split('-');
   const fmt = `${dia}/${mes}`;
 
-  cardioSessions.push({ tipo, dur, data: fmt, postou, nome: tipo });
-  DB.save(DB.KEY_CARDIO, cardioSessions);
-  updateCardioUI();
-
-  document.getElementById('cardio-dur').value = '';
-  if (!postou) {
-    showToast('⚠️ Lembra de postar "CARDIO ' + cardioSessions.length + '" no grupo!');
-  } else {
-    showToast('✅ Sessão salva! +' + dur + ' min 💾');
+  try {
+    await apiPost('/gymlepes/cardio', {
+      nome: nomeP,
+      equipe_id: equipeId,
+      tipo,
+      duracao_min: dur,
+      data: fmt,
+      postou
+    });
+    await carregarCardio();
+    document.getElementById('cardio-dur').value = '';
+    if (!postou) {
+      showToast('⚠️ Lembra de postar "CARDIO ' + cardioSessions.length + '" no grupo!');
+    } else {
+      showToast('✅ Sessão salva! +' + dur + ' min 💾');
+    }
+  } catch (e) {
+    console.warn('Falha ao salvar sessão de cardio:', e);
+    showToast('⚠️ Não foi possível salvar. Tente novamente.');
   }
 }
 
 // REGISTRAR TREINO
-function registrarTreino() {
+async function registrarTreino() {
   const nome   = document.getElementById('inp-nome').value;
   const semana = document.getElementById('inp-semana').value;
   const pts    = parseInt(document.getElementById('inp-pts').value);
@@ -1234,19 +1290,34 @@ function registrarTreino() {
   const [ano, mes, dia] = data.split('-');
   const fmt = `${dia}/${mes}/${ano}`;
 
-  treinos.unshift({ nomeP, equipeId, semana, pts, tipo, data: fmt, postou });
-  DB.save(DB.KEY_TREINOS, treinos);
-  renderTreinosLog();
-
-  if (!postou) showToast(`⚠️ Salvo! Mas não esqueça de postar no grupo! 💾`);
-  else showToast(`✅ Salvo! ${nomeP} · S${semana} · ${pts} pts 💾`);
+  try {
+    await apiPost('/gymlepes/treinos', {
+      nome: nomeP,
+      equipe_id: equipeId,
+      semana,
+      pontos: pts,
+      tipo,
+      data: fmt,
+      postou
+    });
+    await carregarTreinos();
+    if (!postou) showToast(`⚠️ Salvo! Mas não esqueça de postar no grupo! 💾`);
+    else showToast(`✅ Salvo! ${nomeP} · S${semana} · ${pts} pts 💾`);
+  } catch (e) {
+    console.warn('Falha ao salvar treino:', e);
+    showToast('⚠️ Não foi possível salvar. Tente novamente.');
+  }
 }
 
-function removerTreino(idx) {
-  treinos.splice(idx, 1);
-  DB.save(DB.KEY_TREINOS, treinos);
-  renderTreinosLog();
-  showToast('🗑️ Treino removido');
+async function removerTreino(id) {
+  try {
+    await apiDelete('/gymlepes/treinos/' + id);
+    await carregarTreinos();
+    showToast('🗑️ Treino removido');
+  } catch (e) {
+    console.warn('Falha ao excluir treino:', e);
+    showToast('⚠️ Não foi possível excluir. Tente novamente.');
+  }
 }
 
 function renderTreinosLog() {
@@ -1255,30 +1326,24 @@ function renderTreinosLog() {
     log.innerHTML = '<div class="empty-log">Nenhum treino registrado ainda</div>';
     return;
   }
-  log.innerHTML = treinos.map((t, idx) => {
-    const eq = equipes.find(e => e.id === t.equipeId);
+  log.innerHTML = treinos.map((t) => {
+    const eq = equipes.find(e => e.id === t.equipe_id);
     return `
     <div class="log-item">
       <div class="log-icon">${t.tipo.split(' ')[0]}</div>
       <div style="flex:1;">
-        <div class="log-name">${t.nomeP} <span style="font-size:10px;color:${eq?.color || '#fff'};background:${eq?.bg || '#222'};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq?.name || ''}</span></div>
+        <div class="log-name">${t.nome} <span style="font-size:10px;color:${eq?.color || '#fff'};background:${eq?.bg || '#222'};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq?.name || ''}</span></div>
         <div class="log-meta">Sem ${t.semana} · ${t.data} · ${t.postou ? '✅ Postado' : '⚠️ Não postou'}</div>
       </div>
-      <div class="log-dur" style="color:${eq?.color}">${t.pts} pts</div>
-      <button class="btn-mini" onclick="removerTreino(${idx})" title="Excluir este treino" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
+      <div class="log-dur" style="color:${eq?.color}">${t.pontos} pts</div>
+      <button class="btn-mini" onclick="removerTreino(${t.id})" title="Excluir este treino" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
     </div>`;
   }).join('');
 }
 
-// LIMPAR DADOS
+// LIMPAR DADOS (legado — os dados agora ficam no servidor, não no navegador)
 function limparDados() {
-  if (!confirm('⚠️ Apagar todos os treinos e sessões de cardio salvos NESTE navegador?\n\n(Os dados da planilha não são afetados.)\n\nEssa ação não pode ser desfeita!')) return;
-  DB.clear();
-  cardioSessions = [];
-  treinos = [];
-  updateCardioUI();
-  renderTreinosLog();
-  showToast('🗑️ Dados locais apagados!');
+  showToast('ℹ️ Os treinos e o cardio agora ficam salvos no servidor, não neste navegador. Exclua item por item na lista.');
 }
 
 // TABS
@@ -1305,8 +1370,8 @@ renderRanking();
 renderTeams();
 refreshParticipantSelect();
 setToday();
-updateCardioUI();
-renderTreinosLog();
+carregarCardio();
+carregarTreinos();
 sincronizarPlanilha(false);
 </script>
 </body>

@@ -741,6 +741,31 @@
 
   <!-- TAB: INSERIR TREINO -->
   <div class="tab-content" id="tab-inserir">
+
+    <!-- META MENSAL DE CONSTÂNCIA -->
+    <div class="section-title">🎯 Minha Meta do Mês</div>
+    <div class="insert-box" style="margin-bottom:24px;">
+      <div id="meta-mes-label" style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:14px;"></div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Participante</label>
+          <select id="meta-nome" onchange="preencherMetaAtualDoParticipante()">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Sua meta este mês</label>
+          <select id="meta-valor">
+            <option value="15">META 15 · 15 treinos/mês (+30 pts)</option>
+            <option value="20">META 20 · 20 treinos/mês (+35 pts)</option>
+            <option value="25">META 25 · 25 treinos/mês (+40 pts) 🏆</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:4px;" onclick="salvarMeta()">SALVAR MINHA META</button>
+      <div id="metas-lista" style="margin-top:18px;"></div>
+    </div>
+
     <div class="section-title">Registrar Treino</div>
     <div class="insert-box">
       <div class="form-grid">
@@ -1082,6 +1107,97 @@ async function carregarCardio() {
   updateCardioUI();
 }
 
+// ─── META MENSAL DE CONSTÂNCIA ────────────────────────────────────
+const BONUS_POR_META = { 15: 30, 20: 35, 25: 40 };
+let metas = [];
+
+// Descobre em qual mês do desafio a data atual cai (1, 2 ou 3)
+function getMesAtual() {
+  const now   = new Date();
+  const fimM1 = new Date('2026-08-18T23:59:59');
+  const fimM2 = new Date('2026-09-17T23:59:59');
+  if (now <= fimM1) return 1;
+  if (now <= fimM2) return 2;
+  return 3;
+}
+
+const LABEL_MES = {
+  1: 'MÊS 1 · 20/07 – 18/08',
+  2: 'MÊS 2 · 19/08 – 17/09',
+  3: 'MÊS 3 · 18/09 – 17/10',
+};
+
+async function carregarMetas() {
+  try {
+    metas = await apiGet('/gymlepes/metas');
+  } catch (e) {
+    console.warn('Falha ao carregar metas da API:', e);
+    metas = [];
+    showToast('⚠️ Não foi possível carregar as metas do servidor');
+  }
+  renderMetasList();
+  preencherMetaAtualDoParticipante();
+}
+
+function renderMetasList() {
+  const mesAtual = getMesAtual();
+  document.getElementById('meta-mes-label').textContent = 'Escolhendo a meta do ' + LABEL_MES[mesAtual];
+
+  const doMes = metas.filter(m => m.mes === mesAtual);
+  const div = document.getElementById('metas-lista');
+  if (doMes.length === 0) {
+    div.innerHTML = '<div class="empty-log">Ninguém escolheu a meta deste mês ainda</div>';
+    return;
+  }
+  div.innerHTML = doMes.map(m => {
+    const eq = equipes.find(e => e.id === m.equipe_id);
+    return `
+    <div class="log-item">
+      <div class="log-icon">🎯</div>
+      <div style="flex:1;">
+        <div class="log-name">${m.nome}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
+        <div class="log-meta">META ${m.meta} · +${BONUS_POR_META[m.meta] || 0} pts se bater</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Se a pessoa selecionada já tem meta salva pro mês atual, pré-seleciona no dropdown
+function preencherMetaAtualDoParticipante() {
+  const nomeSel = document.getElementById('meta-nome').value;
+  if (!nomeSel) return;
+  const [nomeP] = nomeSel.split('|');
+  const mesAtual = getMesAtual();
+  const existente = metas.find(m => m.nome === nomeP && m.mes === mesAtual);
+  if (existente) {
+    document.getElementById('meta-valor').value = String(existente.meta);
+  }
+}
+
+async function salvarMeta() {
+  const nomeSel = document.getElementById('meta-nome').value;
+  const metaVal = parseInt(document.getElementById('meta-valor').value);
+
+  if (!nomeSel) { showToast('⚠️ Selecione o participante!'); return; }
+
+  const [nomeP, equipeId] = nomeSel.split('|');
+  const mesAtual = getMesAtual();
+
+  try {
+    await apiPost('/gymlepes/metas', {
+      nome: nomeP,
+      equipe_id: equipeId,
+      mes: mesAtual,
+      meta: metaVal
+    });
+    await carregarMetas();
+    showToast(`✅ Meta salva! ${nomeP} · META ${metaVal} · +${BONUS_POR_META[metaVal]} pts`);
+  } catch (e) {
+    console.warn('Falha ao salvar meta:', e);
+    showToast('⚠️ Não foi possível salvar a meta. Tente novamente.');
+  }
+}
+
 // PROGRESS
 function calcProgress() {
   const start = new Date('2026-07-20');
@@ -1179,6 +1295,7 @@ function populateParticipantSelect(sel) {
 function refreshParticipantSelect() {
   populateParticipantSelect(document.getElementById('inp-nome'));
   populateParticipantSelect(document.getElementById('cardio-nome'));
+  populateParticipantSelect(document.getElementById('meta-nome'));
 }
 
 // SET TODAY
@@ -1372,6 +1489,7 @@ refreshParticipantSelect();
 setToday();
 carregarCardio();
 carregarTreinos();
+carregarMetas();
 sincronizarPlanilha(false);
 </script>
 </body>

@@ -1017,10 +1017,17 @@ async function apiGet(path) {
   return res.json();
 }
 
+// ATENÇÃO: esta chave fica visível pra qualquer um que abrir o "Ver código-fonte" da
+// página. Ela não substitui um login de verdade — só bloqueia bots/scanners automáticos
+// que tentam gravar lixo em qualquer API aberta que encontram pela internet (foi assim
+// que o ataque anterior aconteceu). Troque o valor abaixo pelo MESMO valor que você
+// configurar como GYMLEPES_API_KEY no PythonAnywhere.
+const API_KEY = 'oEYNK8gEYbh0_qxBo5zRBg7zz5O-awpPXFuTAeO0DZY';
+
 async function apiPost(path, body) {
   const res = await fetch(API_BASE + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
     body: JSON.stringify(body)
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1028,7 +1035,10 @@ async function apiPost(path, body) {
 }
 
 async function apiDelete(path) {
-  const res = await fetch(API_BASE + path, { method: 'DELETE' });
+  const res = await fetch(API_BASE + path, {
+    method: 'DELETE',
+    headers: { 'X-API-Key': API_KEY }
+  });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }

@@ -903,6 +903,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── ESCAPE HTML (previne injeção via campos de texto livre) ────
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
 // ─── DADOS SINCRONIZADOS (GitHub Actions → JSON) ────────────────
 // Um workflow no repo Cornellllio01/gymlepes-sync busca a planilha a cada hora
 // e publica este JSON, servido via raw.githubusercontent.com (CORS liberado nativamente).
@@ -1099,7 +1108,7 @@ function renderMetasList() {
     <div class="log-item">
       <div class="log-icon">🎯</div>
       <div style="flex:1;">
-        <div class="log-name">${m.nome}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
+        <div class="log-name">${esc(m.nome)}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
         <div class="log-meta">META ${m.meta} · +${BONUS_POR_META[m.meta] || 0} pts se bater</div>
       </div>
     </div>`;
@@ -1213,7 +1222,7 @@ function renderTeams() {
             <div class="member-avatar" style="background:${eq.color}22;color:${eq.color};">
               ${idx === 0 ? '🥇' : m.name.charAt(0)}
             </div>
-            <div class="member-name">${m.name}${isCarlos ? ' <span style="font-size:10px;color:var(--gold);">← você</span>' : ''}</div>
+            <div class="member-name">${esc(m.name)}${isCarlos ? ' <span style="font-size:10px;color:var(--gold);">← você</span>' : ''}</div>
             <div class="member-weeks">
               ${m.weeks.map(pts => `<div class="${weekDotClass(pts, eq.id)}" title="${pts === null ? '—' : pts + ' pts'}"></div>`).join('')}
             </div>
@@ -1286,7 +1295,7 @@ function updateCardioUI() {
       <div class="log-item">
         <div class="log-icon">${s.tipo.split(' ')[0]}</div>
         <div style="flex:1;">
-          <div class="log-name">${s.nome || s.tipo}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
+          <div class="log-name">${esc(s.nome || s.tipo)}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
           <div class="log-meta">${s.data} · ${s.postou ? '✅ Postou no grupo' : '⚠️ Não postou ainda'}</div>
         </div>
         <div class="log-dur">${s.duracao_min} min</div>
@@ -1403,7 +1412,7 @@ function renderTreinosLog() {
     <div class="log-item">
       <div class="log-icon">${t.tipo.split(' ')[0]}</div>
       <div style="flex:1;">
-        <div class="log-name">${t.nome} <span style="font-size:10px;color:${eq?.color || '#fff'};background:${eq?.bg || '#222'};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq?.name || ''}</span></div>
+        <div class="log-name">${esc(t.nome)} <span style="font-size:10px;color:${eq?.color || '#fff'};background:${eq?.bg || '#222'};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq?.name || ''}</span></div>
         <div class="log-meta">Sem ${t.semana} · ${t.data} · ${t.postou ? '✅ Postado' : '⚠️ Não postou'}</div>
       </div>
       <div class="log-dur" style="color:${eq?.color}">${t.pontos} pts</div>

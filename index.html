@@ -35,6 +35,70 @@
     padding: 0 0 60px;
   }
 
+  /* LOGIN */
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    max-width: 320px;
+    width: 100%;
+    text-align: center;
+  }
+  .login-box .icon { font-size: 32px; margin-bottom: 8px; }
+  .login-box .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+  }
+  .login-box input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .login-box input:focus { border-color: var(--gold); }
+  .login-erro {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 12px;
+    min-height: 14px;
+  }
+  .logout-btn {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .logout-btn:hover { color: #f87171; border-color: rgba(248,113,113,0.4); }
+
   /* HEADER */
   .header {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -605,6 +669,20 @@
 </head>
 <body>
 
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="icon">🔒</div>
+    <div class="title">GYM LEPES</div>
+    <input type="password" id="login-senha" placeholder="Senha do grupo" autocomplete="current-password">
+    <button class="btn-primary" onclick="fazerLogin()">ENTRAR</button>
+    <div class="login-erro" id="login-erro"></div>
+  </div>
+</div>
+
+<!-- CONTEÚDO DO APP (só aparece após login) -->
+<div id="app-content" style="display:none;">
+
 <!-- HEADER -->
 <div class="header">
   <div class="trophy-row">🏆</div>
@@ -618,6 +696,7 @@
   <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
     <div id="sync-info" class="sync-badge loading">🔄 sincronizando...</div>
     <button class="btn-mini" onclick="sincronizarPlanilha(true)">🔄 atualizar da planilha</button>
+    <button class="logout-btn" onclick="fazerLogout()">🚪 sair</button>
   </div>
 </div>
 
@@ -900,6 +979,8 @@
   </div>
 </div>
 
+</div> <!-- fim #app-content -->
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -909,13 +990,8 @@ function esc(s) {
 }
 
 // ─── DADOS SINCRONIZADOS (GitHub Actions → JSON) ────────────────
-// Um workflow no repo Cornellllio01/gymlepes-sync busca a planilha a cada hora
-// e publica este JSON, servido via raw.githubusercontent.com (CORS liberado nativamente).
-// IMPORTANTE: NÃO trocar por fetch direto do CSV do Google Sheets — o endpoint de
-// publicação do Sheets não envia headers CORS e o fetch falha ("Failed to fetch").
 const DATA_JSON_URL = 'https://raw.githubusercontent.com/Cornellllio01/gymlepes-sync/main/data/participantes.json';
 
-// DADOS DE FALLBACK (usados se o JSON não carregar)
 const equipesFallback = [
   {
     id: 'pi', name: 'P.I.', score: 71.8, color: '#4ade80', bg: '#0d2b1a',
@@ -996,7 +1072,7 @@ async function sincronizarPlanilha(manual) {
     if (equipes === equipesFallback || manual) {
       setSyncBadge('err', '⚠️ sem conexão · usando dados salvos');
     }
-    if (equipes !== equipesFallback) return; // já tem dados carregados antes
+    if (equipes !== equipesFallback) return;
     equipes = equipesFallback;
     renderRanking();
     renderTeams();
@@ -1004,11 +1080,12 @@ async function sincronizarPlanilha(manual) {
   }
 }
 
-// ─── API (PythonAnywhere) ────────────────────────────────────────
+// ─── API (PythonAnywhere) — agora autenticado por SESSÃO (cookie), sem chave no JS ──
 const API_BASE = 'https://lepesti01.pythonanywhere.com';
 
 async function apiGet(path) {
-  const res = await fetch(API_BASE + path);
+  const res = await fetch(API_BASE + path, { credentials: 'include' });
+  if (res.status === 401 || res.status === 403) { mostrarLogin(); throw new Error('não autorizado'); }
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
@@ -1016,12 +1093,11 @@ async function apiGet(path) {
 async function apiPost(path, body) {
   const res = await fetch(API_BASE + path, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': 'nOhVe26zPy2WEzKG2CgwTYeIlFXCIABWIYXrk2YZuvU'
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
+  if (res.status === 401 || res.status === 403) { mostrarLogin(); throw new Error('não autorizado'); }
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
@@ -1029,11 +1105,83 @@ async function apiPost(path, body) {
 async function apiDelete(path) {
   const res = await fetch(API_BASE + path, {
     method: 'DELETE',
-    headers: { 'X-API-Key': 'nOhVe26zPy2WEzKG2CgwTYeIlFXCIABWIYXrk2YZuvU' }
+    credentials: 'include'
   });
+  if (res.status === 401 || res.status === 403) { mostrarLogin(); throw new Error('não autorizado'); }
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
+
+// ─── LOGIN POR SESSÃO ─────────────────────────────────────────────
+function mostrarLogin() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('app-content').style.display = 'none';
+}
+
+function esconderLogin() {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('app-content').style.display = '';
+}
+
+async function fazerLogin() {
+  const senhaInput = document.getElementById('login-senha');
+  const erroEl = document.getElementById('login-erro');
+  const senha = senhaInput.value;
+  erroEl.textContent = '';
+
+  if (!senha) { erroEl.textContent = 'Digite a senha.'; return; }
+
+  try {
+    const res = await fetch(API_BASE + '/gymlepes/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senha })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      senhaInput.value = '';
+      esconderLogin();
+      iniciarApp();
+    } else {
+      erroEl.textContent = data.message || 'Senha incorreta.';
+    }
+  } catch (e) {
+    erroEl.textContent = 'Erro de conexão. Tente novamente.';
+  }
+}
+
+async function fazerLogout() {
+  try {
+    await fetch(API_BASE + '/gymlepes/logout', { method: 'POST', credentials: 'include' });
+  } catch (e) { /* ignora erro de rede no logout */ }
+  mostrarLogin();
+}
+
+async function verificarLogin() {
+  try {
+    const res = await fetch(API_BASE + '/gymlepes/check-login', { credentials: 'include' });
+    const data = await res.json();
+    if (data.logged_in) {
+      esconderLogin();
+      iniciarApp();
+    } else {
+      mostrarLogin();
+    }
+  } catch (e) {
+    mostrarLogin();
+  }
+}
+
+// Enter no campo de senha também tenta logar
+document.addEventListener('DOMContentLoaded', () => {
+  const senhaInput = document.getElementById('login-senha');
+  if (senhaInput) {
+    senhaInput.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') fazerLogin();
+    });
+  }
+});
 
 // ─── STATE (carregado da API) ────────────────────────────────────
 let cardioSessions = [];
@@ -1045,7 +1193,6 @@ async function carregarTreinos() {
   } catch (e) {
     console.warn('Falha ao carregar treinos da API:', e);
     treinos = [];
-    showToast('⚠️ Não foi possível carregar os treinos do servidor');
   }
   renderTreinosLog();
 }
@@ -1056,7 +1203,6 @@ async function carregarCardio() {
   } catch (e) {
     console.warn('Falha ao carregar cardio da API:', e);
     cardioSessions = [];
-    showToast('⚠️ Não foi possível carregar o cardio do servidor');
   }
   updateCardioUI();
   renderTeams();
@@ -1066,7 +1212,6 @@ async function carregarCardio() {
 const BONUS_POR_META = { 15: 30, 20: 35, 25: 40 };
 let metas = [];
 
-// Descobre em qual mês do desafio a data atual cai (1, 2 ou 3)
 function getMesAtual() {
   const now   = new Date();
   const fimM1 = new Date('2026-08-18T23:59:59');
@@ -1088,7 +1233,6 @@ async function carregarMetas() {
   } catch (e) {
     console.warn('Falha ao carregar metas da API:', e);
     metas = [];
-    showToast('⚠️ Não foi possível carregar as metas do servidor');
   }
   renderMetasList();
   preencherMetaAtualDoParticipante();
@@ -1117,7 +1261,6 @@ function renderMetasList() {
   }).join('');
 }
 
-// Se a pessoa selecionada já tem meta salva pro mês atual, pré-seleciona no dropdown
 function preencherMetaAtualDoParticipante() {
   const nomeSel = document.getElementById('meta-nome').value;
   if (!nomeSel) return;
@@ -1153,7 +1296,6 @@ async function salvarMeta() {
   }
 }
 
-// PROGRESS
 function calcProgress() {
   const start = new Date('2026-07-20');
   const end   = new Date('2026-10-17');
@@ -1169,7 +1311,6 @@ function initProgress() {
   document.getElementById('progress-pct').textContent = pct + '% CONCLUÍDO';
 }
 
-// RANKING
 function renderRanking() {
   const grid = document.getElementById('ranking-grid');
   const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
@@ -1189,7 +1330,6 @@ function renderRanking() {
   `).join('');
 }
 
-// TEAMS
 function weekDotClass(pts, teamId) {
   if (pts === null || pts === undefined) return 'week-dot';
   if (pts >= 5) return `week-dot ${teamId}-full`;
@@ -1197,7 +1337,6 @@ function weekDotClass(pts, teamId) {
   return 'week-dot zero';
 }
 
-// Soma os minutos de cardio acumulados por uma pessoa (todas as sessões dela)
 function getCardioMinutosPorNome(nome) {
   return cardioSessions
     .filter(s => s.nome === nome)
@@ -1237,7 +1376,6 @@ function renderTeams() {
   }).join('');
 }
 
-// POPULATE SELECT
 function populateParticipantSelect(sel) {
   const current = sel.value;
   sel.innerHTML = '<option value="">Selecione...</option>';
@@ -1263,14 +1401,12 @@ function refreshParticipantSelect() {
   populateParticipantSelect(document.getElementById('meta-nome'));
 }
 
-// SET TODAY
 function setToday() {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('inp-data').value = today;
   document.getElementById('cardio-data').value = today;
 }
 
-// CARDIO
 function updateCardioUI() {
   const total = cardioSessions.reduce((a,b) => a + b.duracao_min, 0);
   const pct   = Math.min((total / 720) * 100, 100);
@@ -1298,7 +1434,7 @@ function updateCardioUI() {
         <div class="log-icon">${esc(s.tipo.split(' ')[0])}</div>
         <div style="flex:1;">
           <div class="log-name">${esc(s.nome || s.tipo)}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
-          <div class="log-meta">${s.data} · ${s.postou ? '✅ Postou no grupo' : '⚠️ Não postou ainda'}</div>
+          <div class="log-meta">${esc(s.data)} · ${s.postou ? '✅ Postou no grupo' : '⚠️ Não postou ainda'}</div>
         </div>
         <div class="log-dur">${s.duracao_min} min</div>
         <button class="btn-mini" onclick="removerCardio(${s.id})" title="Excluir esta sessão" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
@@ -1355,7 +1491,6 @@ async function addCardio() {
   }
 }
 
-// REGISTRAR TREINO
 async function registrarTreino() {
   const nome   = document.getElementById('inp-nome').value;
   const semana = document.getElementById('inp-semana').value;
@@ -1415,7 +1550,7 @@ function renderTreinosLog() {
       <div class="log-icon">${esc(t.tipo.split(' ')[0])}</div>
       <div style="flex:1;">
         <div class="log-name">${esc(t.nome)} <span style="font-size:10px;color:${eq?.color || '#fff'};background:${eq?.bg || '#222'};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq?.name || ''}</span></div>
-        <div class="log-meta">Sem ${t.semana} · ${t.data} · ${t.postou ? '✅ Postado' : '⚠️ Não postou'}</div>
+        <div class="log-meta">Sem ${t.semana} · ${esc(t.data)} · ${t.postou ? '✅ Postado' : '⚠️ Não postou'}</div>
       </div>
       <div class="log-dur" style="color:${eq?.color}">${t.pontos} pts</div>
       <button class="btn-mini" onclick="removerTreino(${t.id})" title="Excluir este treino" style="margin-left:8px;padding:2px 6px;color:#ef4444;border-color:rgba(239,68,68,0.3);">🗑️</button>
@@ -1423,7 +1558,6 @@ function renderTreinosLog() {
   }).join('');
 }
 
-// TABS
 function switchTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1433,7 +1567,6 @@ function switchTab(id) {
   document.querySelectorAll('.tab')[idx]?.classList.add('active');
 }
 
-// TOAST
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1441,16 +1574,23 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// INIT
-initProgress();
-renderRanking();
-renderTeams();
-refreshParticipantSelect();
-setToday();
-carregarCardio();
-carregarTreinos();
-carregarMetas();
-sincronizarPlanilha(false);
+let appJaIniciado = false;
+function iniciarApp() {
+  if (appJaIniciado) return; // evita rodar tudo de novo se check-login/login disparar duas vezes
+  appJaIniciado = true;
+  initProgress();
+  renderRanking();
+  renderTeams();
+  refreshParticipantSelect();
+  setToday();
+  carregarCardio();
+  carregarTreinos();
+  carregarMetas();
+  sincronizarPlanilha(false);
+}
+
+// INIT — primeiro verifica se já existe sessão válida (cookie salvo)
+verificarLogin();
 </script>
 </body>
 </html>

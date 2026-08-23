@@ -1295,7 +1295,7 @@ function updateCardioUI() {
       const eq = equipes.find(e => e.id === s.equipe_id);
       return `
       <div class="log-item">
-        <div class="log-icon">${s.tipo.split(' ')[0]}</div>
+        <div class="log-icon">${esc(s.tipo.split(' ')[0])}</div>
         <div style="flex:1;">
           <div class="log-name">${esc(s.nome || s.tipo)}${eq ? ` <span style="font-size:10px;color:${eq.color};background:${eq.bg};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq.name}</span>` : ''}</div>
           <div class="log-meta">${s.data} · ${s.postou ? '✅ Postou no grupo' : '⚠️ Não postou ainda'}</div>
@@ -1412,7 +1412,7 @@ function renderTreinosLog() {
     const eq = equipes.find(e => e.id === t.equipe_id);
     return `
     <div class="log-item">
-      <div class="log-icon">${t.tipo.split(' ')[0]}</div>
+      <div class="log-icon">${esc(t.tipo.split(' ')[0])}</div>
       <div style="flex:1;">
         <div class="log-name">${esc(t.nome)} <span style="font-size:10px;color:${eq?.color || '#fff'};background:${eq?.bg || '#222'};padding:1px 6px;border-radius:8px;margin-left:4px;">${eq?.name || ''}</span></div>
         <div class="log-meta">Sem ${t.semana} · ${t.data} · ${t.postou ? '✅ Postado' : '⚠️ Não postou'}</div>

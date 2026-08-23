@@ -1018,7 +1018,7 @@ async function apiPost(path, body) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': 'oEYNK8gEYbh0_qxBo5zRBg7zz5O-awpPXFuTAeO0DZY'
+      'X-API-Key': 'nOhVe26zPy2WEzKG2CgwTYeIlFXCIABWIYXrk2YZuvU'
     },
     body: JSON.stringify(body)
   });
@@ -1029,7 +1029,7 @@ async function apiPost(path, body) {
 async function apiDelete(path) {
   const res = await fetch(API_BASE + path, {
     method: 'DELETE',
-    headers: { 'X-API-Key': 'oEYNK8gEYbh0_qxBo5zRBg7zz5O-awpPXFuTAeO0DZY' }
+    headers: { 'X-API-Key': 'nOhVe26zPy2WEzKG2CgwTYeIlFXCIABWIYXrk2YZuvU' }
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();

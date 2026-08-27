@@ -674,7 +674,8 @@
   <div class="login-box">
     <div class="icon">🔒</div>
     <div class="title">GYM LEPES</div>
-    <input type="password" id="login-senha" placeholder="Senha do grupo" autocomplete="current-password">
+    <input type="text" id="login-usuario" placeholder="Usuário" autocomplete="username">
+    <input type="password" id="login-codigo" placeholder="Código" autocomplete="current-password">
     <button class="btn-primary" onclick="fazerLogin()">ENTRAR</button>
     <div class="login-erro" id="login-erro"></div>
   </div>
@@ -1124,27 +1125,30 @@ function esconderLogin() {
 }
 
 async function fazerLogin() {
-  const senhaInput = document.getElementById('login-senha');
+  const usuarioInput = document.getElementById('login-usuario');
+  const codigoInput  = document.getElementById('login-codigo');
   const erroEl = document.getElementById('login-erro');
-  const senha = senhaInput.value;
+  const usuario = usuarioInput.value.trim();
+  const codigo  = codigoInput.value.trim();
   erroEl.textContent = '';
 
-  if (!senha) { erroEl.textContent = 'Digite a senha.'; return; }
+  if (!usuario || !codigo) { erroEl.textContent = 'Preencha usuário e código.'; return; }
 
   try {
     const res = await fetch(API_BASE + '/gymlepes/login', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ senha })
+      body: JSON.stringify({ usuario, codigo })
     });
     const data = await res.json();
     if (res.ok) {
-      senhaInput.value = '';
+      usuarioInput.value = '';
+      codigoInput.value = '';
       esconderLogin();
       iniciarApp();
     } else {
-      erroEl.textContent = data.message || 'Senha incorreta.';
+      erroEl.textContent = data.message || 'Usuário ou código incorretos.';
     }
   } catch (e) {
     erroEl.textContent = 'Erro de conexão. Tente novamente.';
@@ -1173,14 +1177,16 @@ async function verificarLogin() {
   }
 }
 
-// Enter no campo de senha também tenta logar
+// Enter em qualquer campo de login também tenta logar
 document.addEventListener('DOMContentLoaded', () => {
-  const senhaInput = document.getElementById('login-senha');
-  if (senhaInput) {
-    senhaInput.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter') fazerLogin();
-    });
-  }
+  ['login-usuario', 'login-codigo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') fazerLogin();
+      });
+    }
+  });
 });
 
 // ─── STATE (carregado da API) ────────────────────────────────────
